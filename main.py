@@ -131,6 +131,41 @@ def _payload_to_bytes(file_payload) -> bytes:
     raise ValueError("Unsupported file payload format from file input.")
 
 
+def extract_products_from_payload(file_payload) -> dict:
+    """Parse every file in an upload payload (users can upload several .xlsx
+    at once, each in either layout). Pools all products found; unreadable
+    files are skipped and reported rather than failing the whole batch.
+
+    Returns {"products": [...], "files_ok": [names], "files_failed": [names]}.
+    Each product dict gains a "source_file" key when the filename is known.
+    """
+    entries = file_payload if isinstance(file_payload, list) else [file_payload]
+    products, files_ok, files_failed = [], [], []
+    for i, entry in enumerate(entries):
+        name = entry.get("name", f"file {i + 1}") if isinstance(entry, dict) else f"file {i + 1}"
+        try:
+            data = extract_product_data([entry] if isinstance(entry, dict) else entry)
+        except Exception:
+            files_failed.append(name)
+            continue
+        for p in data["products"]:
+            products.append({**p, "source_file": name})
+        files_ok.append(name)
+    return {"products": products, "files_ok": files_ok, "files_failed": files_failed}
+
+
+def product_label(product: dict, index: int = 0) -> str:
+    """Human label for the product picker dropdown."""
+    label = ""
+    for k, v in product.items():
+        if str(k).lower().strip() in ("product name", "name", "product", "title", "model"):
+            label = str(v)
+            break
+    label = label or f"Product {index + 1}"
+    src = product.get("source_file")
+    return f"{label} · {src}" if src else label
+
+
 # ---------------------------------------------------------------------------
 # 2. Prompt builders
 # ---------------------------------------------------------------------------
@@ -276,6 +311,10 @@ initial_state = wf.init_state({
     "seo_keywords": "",
     "seo_keywords_selected": list(DEFAULT_SEO_KEYWORDS),
     "seo_keywords_custom": "",
+    "products_all": None,
+    "product_options": "{}",
+    "products_found": False,
+    "selected_product": "",
     "title_max": str(TITLE_MAX),
     "bullet_max": str(BULLET_MAX),
     "title_chars": "",
@@ -333,10 +372,21 @@ with wf.init_ui() as ui:
                         id="pdp-doc-heading",
                     )
                     ui.FileInput(
-                        {"label": "Product information document (.xlsx)",
-                         "allowFileTypes": ".xlsx"},
+                        {"label": "Product information document(s) (.xlsx)",
+                         "allowFileTypes": ".xlsx",
+                         "allowMultipleFiles": "yes"},
                         id="pdp-file-input",
                         binding={"wf-file-change": "uploaded_file"},
+                    )
+                    ui.SelectInput(
+                        {"label": "Multiple products found — pick one",
+                         "options": "@{product_options}",
+                         "accentColor": "#4A46DA"},
+                        id="pdp-product-picker",
+                        binding={"wf-option-change": "selected_product"},
+                        visible={"expression": "custom",
+                                 "binding": "products_found",
+                                 "reversed": False},
                     )
                 with ui.Column({"width": "1"}, id="pdp-col-keywords"):
                     ui.Heading(
