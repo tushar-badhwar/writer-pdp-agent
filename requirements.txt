@@ -1,0 +1,2 @@
+writer==1.28.0
+openpyxl

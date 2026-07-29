@@ -1,0 +1,16 @@
+# secrets
+.env
+
+# local environment
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# assignment collateral kept out of the public repo
+2026_ Deployment Engineer Take-Home Assignment.pdf
+README.md
+static/README.md
+
+# internal notes
+overview.md

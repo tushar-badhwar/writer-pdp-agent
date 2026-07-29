@@ -1,0 +1,8 @@
+/* Badges are informational only — suppress the Tags component's
+   clickable affordance (it emits wf-tag-click, so the frontend
+   shows a pointer cursor even with no handler wired). */
+.pdp-noclick,
+.pdp-noclick * {
+    pointer-events: none;
+    cursor: default;
+}
