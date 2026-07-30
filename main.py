@@ -30,6 +30,11 @@ TITLE_MAX = 150
 BULLET_MAX = 200
 MAX_REPAIR_ATTEMPTS = 2
 
+# Generation is a voice task -> palmyra-creative. Repair is an
+# instruction-following task (shorten, preserve, return JSON) -> palmyra-x5.
+GENERATION_MODEL = "palmyra-creative"
+REPAIR_MODEL = "palmyra-x5"
+
 DEFAULT_SEO_KEYWORDS = [
     "LED Desk Lamp",
     "Energy-efficient Lighting",

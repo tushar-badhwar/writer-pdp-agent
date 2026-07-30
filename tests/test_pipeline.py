@@ -69,7 +69,7 @@ def live_generate(prompt: str) -> str:
     from writerai import Writer
     client = Writer()  # reads WRITER_API_KEY
     resp = client.chat.chat(
-        model="palmyra-x5",
+        model=_m.GENERATION_MODEL,
         messages=[{"role": "user", "content": prompt}],
     )
     return resp.choices[0].message.content
@@ -118,6 +118,6 @@ def run_pipeline(generate_fn, label: str):
 if __name__ == "__main__":
     if "--live" in sys.argv:
         assert os.environ.get("WRITER_API_KEY"), "Set WRITER_API_KEY for live mode"
-        run_pipeline(live_generate, "LIVE (palmyra-x5)")
+        run_pipeline(live_generate, f"LIVE ({_m.GENERATION_MODEL})")
     else:
         run_pipeline(mock_generate, "OFFLINE (mock LLM)")
