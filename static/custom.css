@@ -6,3 +6,12 @@
     pointer-events: none;
     cursor: default;
 }
+
+/* Human-in-the-loop review warning shown when hard truncation fired. */
+.pdp-review-flag {
+    background: #fff7f4;
+    border: 1px solid #fdcfc3;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #8a3b26;
+}

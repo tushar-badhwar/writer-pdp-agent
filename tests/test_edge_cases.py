@@ -123,6 +123,16 @@ def test_product_without_name_column():
     print(f"PASS product with no name column -> fallback label '{label}'")
 
 
+def test_truncation_review_diff():
+    original = {"title": "T" * 200, "description": "d",
+                "bullets": ["b" * 250, "short and fine"]}
+    fixed = _m.hard_truncate(original)
+    trimmed = _m.diff_truncated_fields(original, fixed)
+    assert trimmed == ["title", "bullet 1"], trimmed
+    assert _m.diff_truncated_fields(fixed, _m.hard_truncate(fixed)) == []
+    print(f"PASS truncation diff names trimmed fields for review -> {trimmed}")
+
+
 if __name__ == "__main__":
     test_garbage_file()
     test_empty_sheet()
@@ -131,4 +141,5 @@ if __name__ == "__main__":
     test_multi_file_with_garbage()
     test_all_files_bad()
     test_product_without_name_column()
+    test_truncation_review_diff()
     print("\nALL EDGE CASES PASS")

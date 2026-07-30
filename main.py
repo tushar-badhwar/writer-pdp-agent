@@ -290,6 +290,21 @@ def _truncate_words(text: str, limit: int) -> str:
     return text[:limit].rsplit(" ", 1)[0].rstrip(",;:-")
 
 
+def diff_truncated_fields(original: dict, fixed: dict) -> list:
+    """Human-readable names of the fields hard_truncate actually changed.
+    Feeds the human-in-the-loop review flag: truncated copy is compliant
+    but may end abruptly, so a person gets the final word."""
+    changed = []
+    if original.get("title") != fixed.get("title"):
+        changed.append("title")
+    for i, (a, b) in enumerate(
+        zip(original.get("bullets", []), fixed.get("bullets", [])), start=1
+    ):
+        if a != b:
+            changed.append(f"bullet {i}")
+    return changed
+
+
 # ---------------------------------------------------------------------------
 # 6. Presentation helper for the UI output section
 # ---------------------------------------------------------------------------
@@ -329,6 +344,8 @@ initial_state = wf.init_state({
     "violations": [],
     "pdp_copy": None,
     "pdp_copy_markdown": "",
+    "needs_review": False,
+    "review_note": "",
     "status_message": "Upload a product information document (.xlsx) to begin.",
 })
 
@@ -473,6 +490,12 @@ with wf.init_ui() as ui:
                          "note": "+ benefit-led"},
                         id="pdp-metric-count",
                     )
+            ui.Text(
+                {"text": "@{review_note}", "cssClasses": "pdp-review-flag"},
+                id="pdp-review-flag",
+                visible={"expression": "custom", "binding": "needs_review",
+                         "reversed": False},
+            )
             ui.Text(
                 {"text": "@{pdp_copy_markdown}", "useMarkdown": "yes",
                  "quickCopy": "yes"},
